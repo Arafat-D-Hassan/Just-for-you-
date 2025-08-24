@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classic Interactive Piano</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #fff;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background: rgba(18, 26, 44, 0.85);
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            position: relative;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        header {
+            padding: 30px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ff6b6b, #ffa86b, #ffda6b, #6bff9e, #6bc7ff, #9d6bff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            margin-bottom: 20px;
+            color: #e0e0e0;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #6bff9e 0%, #6bc7ff 100%);
+            color: #0f3460;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(107, 199, 255, 0.4);
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(107, 199, 255, 0.6);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .visualizer-container {
+            height: 200px;
+            position: relative;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        #visualizer {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .piano-container {
+            padding: 30px;
+            display: flex;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.1);
+        }
+        
+        .piano {
+            display: flex;
+            position: relative;
+            height: 220px;
+        }
+        
+        .key {
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 15px;
+            font-weight: bold;
+            user-select: none;
+        }
+        
+        .white {
+            width: 60px;
+            height: 100%;
+            background: linear-gradient(to bottom, #fff 0%, #f5f5f5 100%);
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border: 1px solid #ddd;
+            color: #333;
+            z-index: 1;
+            margin: 0 2px;
+        }
+        
+        .white.active {
+            background: linear-gradient(to bottom, #6bc7ff 0%, #4293d6 100%);
+            box-shadow: 0 3px 10px rgba(107, 199, 255, 0.8);
+        }
+        
+        .black {
+            width: 36px;
+            height: 65%;
+            background: linear-gradient(to bottom, #333 0%, #000 100%);
+            border-radius: 0 0 6px 6px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            z-index: 2;
+            margin: 0 -18px;
+            color: #fff;
+        }
+        
+        .black.active {
+            background: linear-gradient(to bottom, #6bff9e 0%, #42d67c 100%);
+            box-shadow: 0 3px 10px rgba(107, 255, 158, 0.8);
+        }
+        
+        .instructions {
+            padding: 30px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.2);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .instructions h2 {
+            margin-bottom: 15px;
+            color: #6bc7ff;
+        }
+        
+        .instructions p {
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            color: #e0e0e0;
+        }
+        
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0.7;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #6bc7ff;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .white {
+                width: 40px;
+            }
+            
+            .black {
+                width: 24px;
+                margin: 0 -12px;
+            }
+            
+            .piano-container {
+                padding: 15px;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>This piano is just for you ✨</h1>
+            <p class="subtitle"> It's for you pookie 😽💖,,,I will make sure it's going well. Make sure to enjoy yourself</p>
+            <div class="controls">
+                <button class="btn" id="demo-btn">Play Demo</button>
+                <button class="btn" id="change-theme">Don't click it 😑</button>
+                <button class="btn" id="help-btn">Help (you don't need any help)</button>
+            </div>
+        </header>
+        
+        <div class="visualizer-container">
+            <canvas id="visualizer"></canvas>
+        </div>
+        
+        <div class="piano-container">
+            <div class="piano" id="piano">
+                <!-- Piano keys will be generated by JavaScript -->
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h2>How to Play</h2>
+            <p> Just do whatever you want,
+                   
+             it's all your pookie 😉😽💝</p>
+        </div>
+        
+        <footer>
+            <p>Created with ❤️ for a special parson | And it's you 😸🥹 || Arafat Hassan</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const piano = document.getElementById('piano');
+            const demoBtn = document.getElementById('demo-btn');
+            const changeThemeBtn = document.getElementById('change-theme');
+            const helpBtn = document.getElementById('help-btn');
+            const canvas = document.getElementById('visualizer');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas dimensions
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            
+            // Audio context
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            let oscillators = {};
+            
+            // Piano notes (white keys and black keys)
+            const whiteKeys = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+            const blackKeys = ['C#', 'D#', 'F#', 'G#', 'A#'];
+            
+            // Key mappings for computer keyboard
+            const keyMap = {
+                'a': 'C4', 'w': 'C#4', 's': 'D4', 'e': 'D#4', 'd': 'E4', 
+                'f': 'F4', 't': 'F#4', 'g': 'G4', 'y': 'G#4', 'h': 'A4', 
+                'u': 'A#4', 'j': 'B4', 'k': 'C5', 'o': 'C#5', 'l': 'D5', 
+                'p': 'D#5', ';': 'E5'
+            };
+            
+            // Create piano keys
+            function createPiano() {
+                // Create white keys
+                whiteKeys.forEach((note, index) => {
+                    const key = document.createElement('div');
+                    key.className = 'key white';
+                    key.dataset.note = note + '4';
+                    key.innerHTML = `<span>${note}</span>`;
+                    piano.appendChild(key);
+                    
+                    // Add more white keys for higher octave
+                    if (index < 3) {
+                        const key2 = document.createElement('div');
+                        key2.className = 'key white';
+                        key2.dataset.note = note + '5';
+                        key2.innerHTML = `<span>${note}</span>`;
+                        piano.appendChild(key2);
+                    }
+                });
+                
+                // Create black keys
+                blackKeys.forEach((note, index) => {
+                    const key = document.createElement('div');
+                    key.className = 'key black';
+                    key.dataset.note = note + '4';
+                    key.innerHTML = `<span>${note}</span>`;
+                    piano.appendChild(key);
+                    
+                    // Add more black keys for higher octave
+                    if (index < 2) {
+                        const key2 = document.createElement('div');
+                        key2.className = 'key black';
+                        key2.dataset.note = note + '5';
+                        key2.innerHTML = `<span>${note}</span>`;
+                        piano.appendChild(key2);
+                    }
+                });
+            }
+            
+            // Play a note
+            function playNote(note, duration = 0.5) {
+                // Stop any existing oscillator for this note
+                if (oscillators[note]) {
+                    oscillators[note].stop();
+                }
+                
+                // Create oscillator
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                // Set frequency based on note
+                oscillator.frequency.value = getFrequency(note);
+                oscillator.type = 'sine';
+                
+                // Configure sound
+                gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+                
+                // Connect nodes
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                // Start and stop oscillator
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + duration);
+                
+                // Store oscillator reference
+                oscillators[note] = oscillator;
+                
+                // Create visualizer particles
+                createParticles(note);
+                
+                // Highlight key
+                const keyElement = document.querySelector(`.key[data-note="${note}"]`);
+                if (keyElement) {
+                    keyElement.classList.add('active');
+                    setTimeout(() => {
+                        keyElement.classList.remove('active');
+                    }, duration * 500);
+                }
+            }
+            
+            // Get frequency for a note
+            function getFrequency(note) {
+                const A4 = 440;
+                const notes = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
+                
+                const noteName = note.slice(0, -1);
+                const octave = parseInt(note.slice(-1));
+                
+                const noteIndex = notes.indexOf(noteName);
+                const semitonesFromA4 = noteIndex - 9 + (octave - 4) * 12;
+                
+                return A4 * Math.pow(2, semitonesFromA4 / 12);
+            }
+            
+            // Create visualizer particles
+            function createParticles(note) {
+                const frequency = getFrequency(note);
+                const particleCount = Math.floor(frequency / 20);
+                const hue = (frequency % 360);
+                
+                for (let i = 0; i < particleCount; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    
+                    const size = Math.random() * 8 + 2;
+                    const left = Math.random() * canvas.width;
+                    
+                    particle.style.width = `${size}px`;
+                    particle.style.height = `${size}px`;
+                    particle.style.left = `${left}px`;
+                    particle.style.top = `${canvas.height}px`;
+                    particle.style.background = `hsla(${hue}, 80%, 60%, 0.7)`;
+                    
+                    document.querySelector('.visualizer-container').appendChild(particle);
+                    
+                    // Animate particle
+                    const animationDuration = Math.random() * 3 + 2;
+                    
+                    particle.animate([
+                        { top: `${canvas.height}px`, opacity: 0.7 },
+                        { top: `-${size}px`, opacity: 0 }
+                    ], {
+                        duration: animationDuration * 1000,
+                        easing: 'cubic-bezier(0.2, 0, 0.8, 1)'
+                    });
+                    
+                    // Remove particle after animation
+                    setTimeout(() => {
+                        particle.remove();
+                    }, animationDuration * 1000);
+                }
+            }
+            
+            // Draw visualizer
+            function drawVisualizer() {
+                requestAnimationFrame(drawVisualizer);
+                
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw a gradient background
+                const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                gradient.addColorStop(0, 'rgba(15, 52, 96, 0.3)');
+                gradient.addColorStop(1, 'rgba(26, 26, 46, 0.3)');
+                
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw waveform (just for visual effect)
+                ctx.beginPath();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = 'rgba(107, 199, 255, 0.5)';
+                
+                for (let x = 0; x < canvas.width; x++) {
+                    const y = canvas.height / 2 + Math.sin(x / 10 + Date.now() / 500) * 30;
+                    
+                    if (x === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                
+                ctx.stroke();
+            }
+            
+            // Play demo song
+            function playDemo() {
+                const demoNotes = [
+                    'C4', 'E4', 'G4', 'C5', 'G4', 'E4', 'C4', 
+                    'D4', 'F4', 'A4', 'D5', 'A4', 'F4', 'D4',
+                    'E4', 'G4', 'B4', 'E5', 'B4', 'G4', 'E4',
+                    'C4', 'E4', 'G4', 'C5', 'G4', 'E4', 'C4'
+                ];
+                
+                let time = 0;
+                
+                demoNotes.forEach((note, index) => {
+                    setTimeout(() => {
+                        playNote(note, 0.7);
+                    }, time);
+                    
+                    time += 300;
+                });
+            }
+            
+            // Change color theme
+            function changeTheme() {
+                const hue = Math.floor(Math.random() * 360);
+                document.documentElement.style.setProperty('--primary-hue', `${hue}`);
+                
+                document.body.style.background = `
+                    linear-gradient(135deg, 
+                    hsl(${hue}, 40%, 15%) 0%, 
+                    hsl(${hue}, 50%, 20%) 50%, 
+                    hsl(${hue}, 60%, 25%) 100%)
+                `;
+            }
+            
+            // Show help
+            function showHelp() {
+                alert('Didin`t I said you don`t need any help😤\n if you need any then just ask me 👊\n\n সুহাসীনি \n তোর জন্য এই ভালোবাসা অসীম \n\n 𝑺𝒖𝒉𝒂𝒔𝒊𝒏𝒊\n𝑻𝒐𝒓 𝑱𝒐𝒏𝒚𝒐 𝑬𝒊 𝑩𝒉𝒂𝒍𝒐𝒃𝒂𝒔𝒂 𝑶𝒔𝒉𝒊𝒎');
+            }
+            
+            // Initialize
+            createPiano();
+            drawVisualizer();
+            
+            // Event listeners
+            piano.addEventListener('click', (e) => {
+                if (e.target.classList.contains('key')) {
+                    playNote(e.target.dataset.note);
+                }
+            });
+            
+            document.addEventListener('keydown', (e) => {
+                if (keyMap[e.key]) {
+                    playNote(keyMap[e.key]);
+                }
+            });
+            
+            demoBtn.addEventListener('click', playDemo);
+            changeThemeBtn.addEventListener('click', changeTheme);
+            helpBtn.addEventListener('click', showHelp);
+            
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                canvas.width = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+            });
+        });
+    </script>
+</body>
+</html>
